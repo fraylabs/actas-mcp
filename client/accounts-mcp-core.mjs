@@ -1,5 +1,3 @@
-import {spawn} from 'node:child_process';
-import {childEnvironment} from './vault.mjs';
 import {PrivateValues,waitForInbox} from './accounts-inbox.mjs';
 
 // Routing metadata stays outside the strict browser report/vault boundary.
@@ -21,7 +19,9 @@ function humanResult(result,name,args,account,action){
 }
 
 // The caller cannot supply argv. Only owner-registered exact arguments execute.
-export async function runAccountCommand(consumer,env,spawnChild=spawn){
+export async function runAccountCommand(consumer,env,spawnChild){
+ const {childEnvironment}=await import('./vault.mjs');
+ spawnChild??=(await import('node:child_process')).spawn;
  if(!consumer||typeof consumer.executable!=='string'||!consumer.executable.startsWith('/')||!/^[a-f0-9]{64}$/.test(consumer.contentHash)||!Array.isArray(consumer.args)||consumer.args.some(x=>typeof x!=='string'||x.includes('\0')))throw Error('Invalid registered consumer.');
  if(!env||typeof env!=='object'||Object.values(env).some(x=>typeof x!=='string'||x.includes('\0'))||'ACTAS_BROWSER_STATE' in env)throw Error('Invalid private session.');
  const {open,mkdtemp,writeFile,rm}=await import('node:fs/promises'),{createHash}=await import('node:crypto'),{tmpdir}=await import('node:os'),{join}=await import('node:path');

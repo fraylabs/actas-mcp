@@ -5,24 +5,5 @@
   "title": "ActAs",
   "version": "0.4.0",
   "websiteUrl": "https://actas.dev/?utm_source=mcp-registry&utm_medium=directory&utm_campaign=launch",
-  "packages": [
-    {
-      "registryType": "npm",
-      "identifier": "actas",
-      "version": "0.4.0",
-      "runtimeHint": "npx",
-      "runtimeArguments": [{"type": "positional", "value": "-y"}],
-      "packageArguments": [{"type": "positional", "value": "mcp"}],
-      "transport": {"type": "stdio"},
-      "environmentVariables": [
-        {
-          "name": "ACTAS_CONNECTION_FILE",
-          "description": "Absolute path to your private ActAs identity connection JSON file, downloaded from the identity Access tab.",
-          "isRequired": true,
-          "isSecret": false,
-          "format": "filepath"
-        }
-      ]
-    }
-  ]
+  "remotes": [{"type":"streamable-http","url":"https://actas.dev/mcp","headers":[{"name":"Authorization","description":"Bearer token from your scoped ActAs connection. Use your MCP client's protected credential settings.","isRequired":true,"isSecret":true}]}]
 }
