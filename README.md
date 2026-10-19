@@ -28,6 +28,17 @@ require `ActAs-MCP-Management: allow`; prefer scoped identity connections.
 
 ## Install
 
+Published packages: [actas](https://www.npmjs.com/package/actas/v/0.4.0) and
+[actas-mcp](https://www.npmjs.com/package/actas-mcp/v/0.4.0). For the npm client:
+
+```sh
+npm install -g actas@0.4.0
+actas mcp
+```
+
+Or run `npx -y actas@0.4.0 mcp` with `ACTAS_CONNECTION_FILE` pointing to your
+private scoped connection JSON. The thin alias is `npx -y actas-mcp@0.4.0`.
+
 Requires Node.js 22 or newer and an ActAs subscription at https://actas.dev.
 Download https://actas.dev/actas-mcp.tgz and run:
 
