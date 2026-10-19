@@ -2,6 +2,7 @@
 
 [ActAs](https://actas.dev/?utm_source=github&utm_medium=directory&utm_campaign=launch) · [Setup guide](https://actas.dev/docs#mcp)
 
+
 Give an AI agent its own identity, email, saved accounts and scoped credentials.
 ActAs Pro costs US$12/month or US$120/year; there is no free tier. The MCP server
 is available remotely over Streamable HTTP or locally over stdio.
@@ -17,6 +18,13 @@ The remote endpoint shares the 19 stdio tool schemas and applies the same API
 permissions and revocation checks on every call. Browser flows still need a
 local browser adapter. Private verification handles and registered executable
 consumers return `needs_local_runtime` remotely; use the local client below.
+
+Stored passwords and TOTP codes are withheld by default. To return them remotely,
+explicitly configure `ActAs-MCP-Secret-Output: allow` as an additional header.
+Existing reveal scopes and vault grants still apply. A hosted client may retain
+secret tool results in chat history; prefer the local runtime to avoid that.
+Inbox sign-in codes also enter the client's results. Workspace management tokens
+require `ActAs-MCP-Management: allow`; prefer scoped identity connections.
 
 ## Install
 
