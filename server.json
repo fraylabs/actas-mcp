@@ -3,7 +3,50 @@
   "name": "dev.actas/accounts",
   "description": "Persistent identity, email, saved accounts and scoped credentials for AI agents.",
   "title": "ActAs",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "websiteUrl": "https://actas.dev/?utm_source=mcp-registry&utm_medium=directory&utm_campaign=launch",
-  "remotes": [{"type":"streamable-http","url":"https://actas.dev/mcp","headers":[{"name":"Authorization","description":"Bearer token from your scoped ActAs connection. Use your MCP client's protected credential settings.","isRequired":true,"isSecret":true}]}]
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://actas.dev/mcp",
+      "headers": [
+        {
+          "name": "Authorization",
+          "description": "Bearer token from your scoped ActAs connection. Use your MCP client's protected credential settings.",
+          "isRequired": true,
+          "isSecret": true
+        }
+      ]
+    }
+  ],
+  "repository": {
+    "url": "https://github.com/fray-agents/actas-mcp",
+    "source": "github"
+  },
+  "packages": [
+    {
+      "registryType": "npm",
+      "registryBaseUrl": "https://registry.npmjs.org",
+      "identifier": "actas",
+      "version": "0.4.0",
+      "runtimeHint": "npx",
+      "transport": {
+        "type": "stdio"
+      },
+      "packageArguments": [
+        {
+          "type": "positional",
+          "value": "mcp"
+        }
+      ],
+      "environmentVariables": [
+        {
+          "name": "ACTAS_CONNECTION_FILE",
+          "description": "Absolute path to your private scoped ActAs connection JSON file. Keep the file private.",
+          "format": "filepath",
+          "isRequired": true
+        }
+      ]
+    }
+  ]
 }
