@@ -14,7 +14,7 @@ function humanResult(result,name,args,account,action){
  const resumeHandle=result.resumeToken?{tool:name,arguments:{accountRef:ref,resumeToken:result.resumeToken}}:name==='actas_account_connect'?{tool:account?.method==='browser'?'actas_account_signup':name,arguments:account?.method==='browser'?{accountRef:ref}:{...args}}:undefined;
  return {...result,kind:'action',question,where,
   why:`${action==='signup'?'Signup':action==='login'?'Sign-in':'Account connection'} for ${platform} account ${ref}${account?.product?` (product ${account.product})`:''} is paused until a person completes this step.`,
-  brianOnly:true,humanStepId:JSON.stringify([account?.workspace,account?.product,ref,result.flowId??'connect',reason,result.flowId?result.humanRequest?.createdAt:null]),
+  humanOnly:true,humanStepId:JSON.stringify([account?.workspace,account?.product,ref,result.flowId??'connect',reason,result.flowId?result.humanRequest?.createdAt:null]),
   ...(resumeHandle?{resumeHandle}:{})};
 }
 

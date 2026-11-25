@@ -1,6 +1,6 @@
 {
   "name": "actas",
-  "version": "0.9.1",
+  "version": "0.9.2",
   "mcpName": "dev.actas/accounts",
   "type": "module",
   "exports": {
@@ -12,7 +12,11 @@
     "./package.json": "./package.json"
   },
   "description": "Persistent identity, email, saved accounts and scoped credentials for AI agents",
-  "homepage": "https://actas.dev",
+  "homepage": "https://actas.dev/?ref=npm",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fraylabs/actas-mcp.git"
+  },
   "keywords": [
     "mcp",
     "mcp-server",

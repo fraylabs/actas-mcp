@@ -51,10 +51,11 @@ export const identityHelp=`ActAs — identity, email and accounts for agents
   actas mail reply <inbox-id> <message-id> --key <stable-key>  Reply with JSON on stdin
   actas secret <resource-id>        Retrieve a permitted secret
 
-Make a connection in the agent's Connection tab in your workspace (Create connection,
+Make a connection in the agent's Connection tab in your workspace (Connect CLI, Create connection,
 then Download connection). Revoke it there with Revoke access.
 Secret retrieval and message reads can return sensitive values; use only in the
 intended authorized runtime. Never pass secret values as command arguments.
+Sending from your own domain starts once ActAs has approved that domain for sending. Email support@actas.dev to ask.
 Sending needs emails:send plus the owner’s Can send email switch. Reply also needs
 emails:read. Send: {"to":"person@example.com","subject":"Hello","text":"Hello"}.
 Reply: {"text":"Thanks"}. Optional simple HTML; no attachments, CC or BCC.

@@ -15,7 +15,7 @@ import {createAccountsMcp} from './accounts-server.mjs';
 const ref=z.string().regex(/^[A-Za-z0-9_-]{1,80}$/);
 export async function main(){
  if(process.argv.includes('--help')||process.argv.includes('-h')){
-  process.stdout.write('ActAs MCP — identity, email and scoped accounts for AI agents.\nRequires Node.js 22+ and ActAs Pro.\nActAs Pro: US$12/month or US$120/year plus applicable tax, after a 7-day free trial (card required, one per workspace). Current price and trial: https://actas.dev/pricing\nSet ACTAS_CONNECTION_FILE to your private identity connection JSON file.\nMake the connection in the agent\'s Connection tab in your workspace, and revoke it there.\nStart actas mcp (or actas-accounts-mcp) from a stdio MCP client.\nDocumentation: https://actas.dev/docs\n');return;
+  process.stdout.write('ActAs MCP — identity, email and scoped accounts for AI agents.\nRequires Node.js 22+ and ActAs Pro.\nActAs Pro: US$12/month or US$120/year plus applicable tax, as of this release. Current price and any free trial: https://actas.dev/pricing\nSet ACTAS_CONNECTION_FILE to your private identity connection JSON file.\nMake the connection in the agent\'s Connection tab in your workspace, and revoke it there.\nStart actas mcp (or actas-accounts-mcp) from a stdio MCP client.\nDocumentation: https://actas.dev/docs\n');return;
  }
  const connection=await readIdentityConnection(),request=(route,method='GET',body)=>identityRequest(connection,route,method,body);
  const identity=connection.kind==='management'?null:await request('/identities/'+connection.identityId);

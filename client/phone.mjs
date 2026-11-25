@@ -8,7 +8,8 @@ export const phoneHelp=`Phones
   actas phone texts [<phone-id>] [--since <time>]  Latest texts: sender, time sent, time ActAs got it, code
   actas phone check [<phone-id>] < number.txt      Does a number match the number on record? Answers match or no match
 The number on record is what a person typed when the phone was added; the phone does
-not report its own number. A text that arrives is the proof that the number is right.
+not report its own number. A text sent to that number that arrives
+is the proof that the number is right.
 Connected means the ActAs Phone app is paired with that phone. The phone id may be left
 out when the connection has one phone. Texts are kept 7 days. Listing phones needs the
 "See names" permission. Reading texts needs "Read SMS codes"; without "See names", name
@@ -16,7 +17,7 @@ the phone id. A text's words appear only with "Read forwarded SMS".
 `;
 const DOCS='https://actas.dev/docs#phone-forwarding';
 const PAIR=`A person signed in to the workspace opens Phones, chooses Pair phone and scans the code with the ActAs Phone app on a dedicated Android phone, then turns forwarding on in the app. Guide: ${DOCS}`;
-const NUMBER_NOTE='The number on record is what a person typed when the phone was added; the phone does not report its own number. A text that arrives is the proof that it is right.';
+const NUMBER_NOTE='The number on record is what a person typed when the phone was added; the phone does not report its own number. A text sent to that number that arrives is the proof that it is right.';
 // Country calling codes are prefix-free: 1 and 7 stand alone, these have two digits, the rest three.
 const TWO=new Set('20 27 30 31 32 33 34 36 39 40 41 43 44 45 46 47 48 49 51 52 53 54 55 56 57 58 60 61 62 63 64 65 66 81 82 84 86 90 91 92 93 94 95 98'.split(' '));
 export const callingCode=number=>/^\+[1-9]\d{6,14}$/.test(number??'')?'+'+(number[1]==='1'||number[1]==='7'?number[1]:TWO.has(number.slice(1,3))?number.slice(1,3):number.slice(1,4)):null;
