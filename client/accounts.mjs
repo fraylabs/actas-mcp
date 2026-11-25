@@ -5,8 +5,8 @@ import {isAbsolute, join} from 'node:path';
 import {spawn} from 'node:child_process';
 
 const reasons = {
-  custodian_action_required: 'Chief must validate the broker request, perform the authorised fresh login in the operations browser, and return a nonsecret observation.',
-  broker_scope_denied: 'This broker only permits the assigned Infisical operations account login.',
+  custodian_action_required: 'The account owner must check the request, sign in fresh in the operations browser, and return a result that holds no secret.',
+  broker_scope_denied: 'This broker only permits the assigned operations account login.',
   authorization_required: 'The site can be inspected, but the account owner must assign this exact origin and account before credential entry or signup submission.',
   verification_pending: 'Signup is saved. Resume after email verification; no duplicate account was requested.',
   account_lookup_failed: 'The mapped existing account could not be retrieved. No signup or login was performed.',

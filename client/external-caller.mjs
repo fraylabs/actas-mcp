@@ -2,14 +2,18 @@ import {readFile} from 'node:fs/promises';
 import {ActAs} from '../scripts/proof-client.mjs';
 import {loadMappings,selectMapping,callerExecutor} from './caller.mjs';
 import {helper} from './helper.mjs';
+import {mailContent} from './mail-content.mjs';
 
 // Provider messages are untrusted. Only exact owner-assigned senders, recipients,
 // verification paths and recent received messages can supply a challenge.
 export function emailChallenge(message,config,principal,since,now=Date.now()) {
+ const data=mailContent(message);if(!data)return;
+ if(message.untrusted&&message.sender_check?.domain_verified!==true)return;
  const timestamp=Date.parse(message.timestamp);
  if(!Number.isFinite(since)||since>now||!Number.isFinite(timestamp)||timestamp<since||timestamp>now||now-timestamp>900000||!message.labels?.includes('received'))return;
  const address=value=>typeof value==='string'?value.match(/<([^<>]+)>$/)?.[1]||value:undefined;
- if(!config.senders?.includes(address(message.from))||!Array.isArray(message.to)||!message.to.some(v=>address(v)===principal)||typeof message.text!=='string')return;
+ if(!config.senders?.includes(address(data.from))||!Array.isArray(data.to)||!data.to.some(v=>address(v)===principal)||typeof data.text!=='string')return;
+ message={...message,text:data.text};
  if(config.kind==='code'){
   // A fixed label avoids arbitrary regex execution and ambiguous numbers in mail.
   if(typeof config.label!=='string'||!config.label||!Number.isInteger(config.digits)||config.digits<4||config.digits>10)return;

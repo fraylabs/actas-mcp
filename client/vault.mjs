@@ -21,7 +21,7 @@ export const vaultHelp=`Workspace vault (exact and folder grants; no values in c
   actas script add /path/script
   actas script check /path/script
   actas grant list
-  actas grant add <client|identity>:ID /path <read|write|reveal|run|totp:code> [--folder]
+  actas grant add <client|identity>:ID /path <read|write|reveal|run|totp:code|session:use> [--folder]
   actas grant revoke ID
 Connected agents and management automation use ACTAS_CONNECTION_FILE. Paths default to ACTAS_VAULT_PATH
 or /shared for run and env sync. For owner grant management use a
@@ -120,7 +120,7 @@ export async function runVaultCommand(args){
    else if(cmd==='card'&&sub==='status'||cmd==='script'&&sub==='check'){if(rest.length!==1)fail();result=await requestVault(ctx,'/read',{path:validPath(rest[0]),action:cmd==='script'?'run':'read'});}
    else if(cmd==='script'&&sub==='add'){if(rest.length!==1)fail();result=await requestVault(ctx,'/set',{path:validPath(rest[0]),kind:'script'});}
    else if(cmd==='grant'&&sub==='list'){if(rest.length)fail();const query=new URLSearchParams({ownerId:ctx.scope.ownerId,...(ctx.scope.productId?{productId:ctx.scope.productId}:{})});result=await requestVault(ctx,'/grants?'+query,undefined,'GET');}
-   else if(cmd==='grant'&&sub==='add'){if(rest.length!==3&&!(rest.length===4&&rest[3]==='--folder'))fail();const m=/^(client|identity):(.+)$/.exec(rest[0]);if(!m||!['read','write','reveal','run','totp:code'].includes(rest[2]))fail();result=await requestVault(ctx,'/grants',{principalKind:m[1],principalId:m[2],path:validPath(rest[1]),action:rest[2],folder:rest[3]==='--folder'});}
+   else if(cmd==='grant'&&sub==='add'){if(rest.length!==3&&!(rest.length===4&&rest[3]==='--folder'))fail();const m=/^(client|identity):(.+)$/.exec(rest[0]);if(!m||!['read','write','reveal','run','totp:code','session:use'].includes(rest[2]))fail();result=await requestVault(ctx,'/grants',{principalKind:m[1],principalId:m[2],path:validPath(rest[1]),action:rest[2],folder:rest[3]==='--folder'});}
    else if(cmd==='grant'&&sub==='revoke'){if(rest.length!==1)fail();result=await requestVault(ctx,'/grants/'+encodeURIComponent(rest[0]),undefined,'DELETE');}
    else fail();
   }

@@ -1,10 +1,18 @@
 {
   "name": "actas",
-  "version": "0.4.0",
+  "version": "0.9.1",
   "mcpName": "dev.actas/accounts",
   "type": "module",
+  "exports": {
+    ".": {
+      "types": "./sdk/index.d.mts",
+      "default": "./sdk/index.mjs"
+    },
+    "./client/*": "./client/*",
+    "./package.json": "./package.json"
+  },
   "description": "Persistent identity, email, saved accounts and scoped credentials for AI agents",
-  "homepage": "https://actas.dev/?utm_source=npm&utm_medium=directory&utm_campaign=launch",
+  "homepage": "https://actas.dev",
   "keywords": [
     "mcp",
     "mcp-server",

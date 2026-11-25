@@ -21,8 +21,12 @@ async function readConnection(file){
 export async function readIdentityConnection(file=path()){return readConnection(file);}
 export async function identityRequest(connection,route,method='GET',body,extraHeaders={}){
  let response;
- try{response=await fetch(connection.apiUrl+'/api/v1'+route,{method,redirect:'error',headers:{Origin:connection.apiUrl,Authorization:'Bearer '+connection.token,'Content-Type':'application/json',...extraHeaders},signal:AbortSignal.timeout(15000),...(body===undefined?{}:{body:JSON.stringify(body)})});}catch{throw Error('ActAs could not be reached. No automatic retry was made.');}
- if(!response.ok)throw Error(response.status===401?'Access expired or was revoked. Reconnect through your workspace.':response.status===403?'This connection does not permit that action.':`ActAs request failed (${response.status}).`);
+ try{response=await fetch(connection.apiUrl+'/api/v1'+route,{method,redirect:'error',headers:{Origin:connection.apiUrl,Authorization:'Bearer '+connection.token,'Content-Type':'application/json',...extraHeaders},signal:AbortSignal.timeout(Math.max(15000,Math.min(75000,(body?.timeoutMs??0)+15000))),...(body===undefined?{}:{body:JSON.stringify(body)})});}catch{throw Error('ActAs could not be reached. No automatic retry was made.');}
+ if(!response.ok){
+  const error=Error(response.status===401?'Access expired or was revoked. Reconnect through your workspace.':response.status===403?'This connection does not permit that action.':`ActAs request failed (${response.status}).`);
+  if(response.status===403){const message=(await response.json().catch(()=>null))?.error?.message;if(typeof message==='string'){error.message=message;error.actasRefusal=message;}}
+  throw error;
+ }
  try{return (await response.json()).data;}catch{throw Error('Invalid ActAs response.');}
 }
 export async function connectIdentity(file){
@@ -47,7 +51,8 @@ export const identityHelp=`ActAs — identity, email and accounts for agents
   actas mail reply <inbox-id> <message-id> --key <stable-key>  Reply with JSON on stdin
   actas secret <resource-id>        Retrieve a permitted secret
 
-Download a connection from your workspace's identity Access tab.
+Make a connection in the agent's Connection tab in your workspace (Create connection,
+then Download connection). Revoke it there with Revoke access.
 Secret retrieval and message reads can return sensitive values; use only in the
 intended authorized runtime. Never pass secret values as command arguments.
 Sending needs emails:send plus the owner’s Can send email switch. Reply also needs

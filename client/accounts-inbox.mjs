@@ -1,4 +1,5 @@
 import {randomBytes} from 'node:crypto';
+import {mailContent} from './mail-content.mjs';
 
 // Values never leave this trusted runtime through MCP. Handles expire and consume once.
 export class PrivateValues {
@@ -16,27 +17,28 @@ export function validateInboxArgs(args){
  if(args.timeoutMs!==undefined&&(!Number.isInteger(args.timeoutMs)||args.timeoutMs<0||args.timeoutMs>30000))throw Error('Invalid timeout.');return args;
 }
 export function verificationValue(message,args,now=Date.now()){
+ const data=mailContent(message);if(!data)return;
  const timestamp=Date.parse(message.timestamp),after=Date.parse(args.after);
- if(!message.labels?.includes('received')||!Number.isFinite(timestamp)||timestamp<after||timestamp>now||senderAddress(message.from)!==args.sender.toLowerCase()||typeof message.subject!=='string'||!message.subject.includes(args.subject)||typeof message.text!=='string')return;
+ if(!message.labels?.includes('received')||!Number.isFinite(timestamp)||timestamp<after||timestamp>now||senderAddress(data.from)!==args.sender.toLowerCase()||data.subject!==args.subject||typeof data.text!=='string')return;
  // ActAs wraps received mail as untrusted; match only the body, and only
  // when ActAs authenticated the sender's domain.
  if(message.sender_check?.domain_verified!==true)return;
- const wrapped=message.untrusted?/^<(untrusted-email-[a-f0-9]+)>\n[\s\S]*?\n\n([\s\S]*)\n<\/\1>$/.exec(message.text):null;
- if(message.untrusted&&!wrapped)return;
- const body=(wrapped?wrapped[2]:message.text).slice(0,200*1024);
+ const body=data.text.slice(0,200*1024);
  if(args.codePattern){const re=new RegExp(`(?:^|[^A-Za-z0-9])(${args.codePattern})(?=$|[^A-Za-z0-9])`),match=re.exec(body);return match?.[1];}
  for(const candidate of body.match(/https:\/\/[^\s<>"']+/g)??[]){try{const url=new URL(candidate);if(url.origin===args.linkOrigin&&url.pathname===args.linkPath&&!url.username&&!url.password&&!url.hash)return url.href;}catch{}}
 }
-export async function waitForInbox(args,request,values,{now=Date.now,sleep=ms=>new Promise(r=>setTimeout(r,ms))}={}){
- validateInboxArgs(args);const deadline=now()+(args.timeoutMs??0);
- do{
-  const listing=await request('/emails/'+encodeURIComponent(args.emailId)+'/messages?limit=20','GET');
-  for(const item of listing.messages??listing){
-   if(!item.labels?.includes('received'))continue;const id=item.message_id??item.id;if(typeof id!=='string')continue;
-   const detail=await request('/emails/'+encodeURIComponent(args.emailId)+'/messages/'+encodeURIComponent(id),'GET');
-   const value=verificationValue(detail,args,now());if(value!==undefined)return {status:'matched',...values.put(value)};
-  }
-  if(now()>=deadline)return {status:'pending'};await sleep(Math.min(1000,deadline-now()));
- }while(now()<=deadline);
- return {status:'pending'};
+export async function waitForInbox(args,request,values){
+ validateInboxArgs(args);
+ const query={sender:args.sender,subject:args.subject,after:args.after,timeoutMs:args.timeoutMs??0};
+ const route='/emails/'+encodeURIComponent(args.emailId)+(args.codePattern?'/code':'/link');
+ if(args.codePattern)query.codePattern=args.codePattern;
+ else{query.urlHost=new URL(args.linkOrigin).hostname;query.urlPathPrefix=args.linkPath;}
+ // Server waits on push and checks authenticated sender/exact subject/scope. No
+ // message list/detail or body retrieval occurs in the local runtime.
+ const result=await request(route,'POST',query);
+ if(result.status!=='matched')return {status:'pending',...(result.reason?{reason:result.reason}:{})};
+ const value=args.codePattern?result.code:result.url;
+ if(typeof value!=='string')throw Error('Invalid verification result.');
+ if(!args.codePattern){const u=new URL(value);if(u.origin!==args.linkOrigin||u.pathname!==args.linkPath||u.username||u.password||u.hash)throw Error('Verification link outside scope.');}
+ return {status:'matched',...values.put(value)};
 }

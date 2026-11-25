@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 import {StdioServerTransport} from '@modelcontextprotocol/sdk/server/stdio.js';
 import {z} from 'zod';
-import {pathToFileURL} from 'node:url';
+import {fileURLToPath} from 'node:url';
+import {realpathSync} from 'node:fs';
 import {readIdentityConnection,identityRequest} from './identity.mjs';
 import {createAccountsRuntime} from './accounts-mcp-core.mjs';
 import {PrivateValues,validateInboxArgs} from './accounts-inbox.mjs';
@@ -14,7 +15,7 @@ import {createAccountsMcp} from './accounts-server.mjs';
 const ref=z.string().regex(/^[A-Za-z0-9_-]{1,80}$/);
 export async function main(){
  if(process.argv.includes('--help')||process.argv.includes('-h')){
-  process.stdout.write('ActAs MCP — identity, email and scoped accounts for AI agents.\nRequires Node.js 22+ and ActAs Pro (US$12/month or US$120/year).\nSet ACTAS_CONNECTION_FILE to your private identity connection JSON file.\nStart actas-accounts-mcp from a stdio MCP client.\nDocumentation: https://actas.dev/docs\n');return;
+  process.stdout.write('ActAs MCP — identity, email and scoped accounts for AI agents.\nRequires Node.js 22+ and ActAs Pro.\nActAs Pro: US$12/month or US$120/year plus applicable tax, after a 7-day free trial (card required, one per workspace). Current price and trial: https://actas.dev/pricing\nSet ACTAS_CONNECTION_FILE to your private identity connection JSON file.\nMake the connection in the agent\'s Connection tab in your workspace, and revoke it there.\nStart actas mcp (or actas-accounts-mcp) from a stdio MCP client.\nDocumentation: https://actas.dev/docs\n');return;
  }
  const connection=await readIdentityConnection(),request=(route,method='GET',body)=>identityRequest(connection,route,method,body);
  const identity=connection.kind==='management'?null:await request('/identities/'+connection.identityId);
@@ -45,4 +46,6 @@ export async function main(){
  for(const signal of ['SIGINT','SIGTERM'])process.once(signal,()=>{void close();});
  await server.connect(new StdioServerTransport());
 }
-if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href)main().catch(()=>{process.stderr.write('ActAs accounts MCP could not start. Verify the private connection file and account permissions.\n');process.exitCode=1;});
+// npm installs the command as a link, so compare real paths.
+const startedDirectly=()=>{try{return realpathSync(process.argv[1])===realpathSync(fileURLToPath(import.meta.url));}catch{return false;}};
+if(process.argv[1]&&startedDirectly())main().catch(()=>{process.stderr.write('ActAs accounts MCP could not start. Verify the private connection file and account permissions.\n');process.exitCode=1;});

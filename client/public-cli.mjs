@@ -5,6 +5,8 @@ import {runManagementCommand,managementHelp} from './management.mjs';
 if(await runManagementCommand(process.argv.slice(2)))process.exit(process.exitCode||0);
 import {runVaultCommand,vaultHelp} from './vault.mjs';
 if(await runVaultCommand(process.argv.slice(2)))process.exit(process.exitCode||0);
+import {runPhoneCommand,phoneHelp} from './phone.mjs';
+if(await runPhoneCommand(process.argv.slice(2)))process.exit(process.exitCode||0);
 import {runIdentityCommand,identityHelp} from './identity.mjs';
 if(await runIdentityCommand(process.argv.slice(2)))process.exit(process.exitCode||0);
 import {configureAccount} from './configure.mjs';
@@ -17,7 +19,7 @@ import {externalExecutor} from './external-caller.mjs';
 const [action,url,...args]=process.argv.slice(2);
 if(action==='configure'){try{if(!url||args.length)throw new Error('Use actas configure <connection.json>.');console.log(JSON.stringify(await configureAccount(url)));}catch(e){console.error(JSON.stringify({status:'failed',message:e.message}));process.exitCode=1;}process.exit(process.exitCode||0);}
 if(!action||['help','--help','-h'].includes(action)){
- console.log(registryHelp+"\n"+managementHelp+"\n"+identityHelp+"\n"+vaultHelp);
+ console.log(registryHelp+"\n"+managementHelp+"\n"+identityHelp+"\n"+phoneHelp+"\n"+vaultHelp);
 }else try{
  if(!['signup','login'].includes(action)||!url||args.length%2)throw new Error('Use actas signup <url> or actas login <url>.');
  const flags={};for(let i=0;i<args.length;i+=2){if(!['--account','--continue'].includes(args[i])||flags[args[i]]||!args[i+1])throw new Error('Unknown or repeated option.');flags[args[i]]=args[i+1];}

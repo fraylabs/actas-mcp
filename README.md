@@ -1,11 +1,9 @@
 # ActAs MCP
 
-[ActAs](https://actas.dev/?utm_source=github&utm_medium=directory&utm_campaign=launch) · [Setup guide](https://actas.dev/docs#mcp)
-
-
 Give an AI agent its own identity, email, saved accounts and scoped credentials.
-ActAs Pro costs US$12/month or US$120/year; there is no free tier. The MCP server
-is available remotely over Streamable HTTP or locally over stdio.
+ActAs Pro: US$12/month or US$120/year plus applicable tax, after a 7-day free trial (card required, one per workspace). Current price and trial: https://actas.dev/pricing
+
+The MCP server is available remotely over Streamable HTTP or locally over stdio.
 
 ## Remote: no install
 
@@ -14,30 +12,23 @@ the token from your scoped ActAs connection in the Authorization bearer header,
 saved through your client's protected credential settings. Do not put the token
 in the endpoint URL, a prompt, or source control. OAuth is not offered.
 
-The remote endpoint shares the 19 stdio tool schemas and applies the same API
+The remote endpoint shares the stdio tool schemas and applies the same API
 permissions and revocation checks on every call. Browser flows still need a
-local browser adapter. Private verification handles and registered executable
-consumers return `needs_local_runtime` remotely; use the local client below.
+local browser adapter. Private verification handles (`actas_inbox_wait_for`) and
+registered executable consumers (`actas_account_use`) are not listed remotely;
+use the local client below.
 
 Stored passwords and TOTP codes are withheld by default. To return them remotely,
 explicitly configure `ActAs-MCP-Secret-Output: allow` as an additional header.
 Existing reveal scopes and vault grants still apply. A hosted client may retain
-secret tool results in chat history; prefer the local runtime to avoid that.
+secret tool results in chat history. These two tools return the value to your
+client in both remote and local mode. To keep a secret out of the conversation
+entirely, use the local client's browser sign-in steps and `actas_inbox_wait_for`,
+which pass private handles instead of values.
 Inbox sign-in codes also enter the client's results. Workspace management tokens
 require `ActAs-MCP-Management: allow`; prefer scoped identity connections.
 
 ## Install
-
-Published packages: [actas](https://www.npmjs.com/package/actas/v/0.4.0) and
-[actas-mcp](https://www.npmjs.com/package/actas-mcp/v/0.4.0). For the npm client:
-
-```sh
-npm install -g actas@0.4.0
-actas mcp
-```
-
-Or run `npx -y actas@0.4.0 mcp` with `ACTAS_CONNECTION_FILE` pointing to your
-private scoped connection JSON. The thin alias is `npx -y actas-mcp@0.4.0`.
 
 Requires Node.js 22 or newer and an ActAs subscription at https://actas.dev.
 Download https://actas.dev/actas-mcp.tgz and run:
@@ -47,9 +38,11 @@ npm install -g ./actas-mcp.tgz
 actas-accounts-mcp --help
 ```
 
+`actas mcp` starts the same server.
+
 Create an identity in your workspace, give it an inbox and grant only the
-resources and actions it needs. Download its private connection from the Access
-tab. Store it outside your source repository with owner-only file permissions.
+resources and actions it needs. In the agent's Connection tab, click Connect CLI
+and download its private connection. Store it outside your source repository with owner-only file permissions.
 
 Add this configuration to a stdio MCP client (replace the example file path):
 
@@ -67,7 +60,8 @@ Add this configuration to a stdio MCP client (replace the example file path):
 ```
 
 The connection file contains a bearer token. Never put its contents in prompts,
-URLs, logs or git. Revoke the connection in ActAs to stop its future requests.
+URLs, logs or git. Revoke the connection in the agent's Connection tab (Revoke access) to stop its
+future requests.
 
 ## Tools and permissions
 

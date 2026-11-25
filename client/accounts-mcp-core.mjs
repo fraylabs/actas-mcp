@@ -1,7 +1,7 @@
 import {PrivateValues,waitForInbox} from './accounts-inbox.mjs';
 
 // Routing metadata stays outside the strict browser report/vault boundary.
-// The step ID survives token rotation so callers can persist one Turnless request.
+// The step ID survives token rotation so callers can keep one request for a person across retries.
 function humanResult(result,name,args,account,action){
  if(result.status!=='needs_human')return result;
  account=result.account??account;
@@ -45,14 +45,16 @@ export async function runAccountCommand(consumer,env,spawnChild){
 export async function vaultLogin(request,scope,path){
  const read=body=>request('/vault/read','POST',{...scope,path,...body});
  const entry=await read({action:'read'});if(entry.kind!=='login')throw Error('Not a login item.');
+ const signInMethod=entry.login?.signInMethod??'password',ssoAccountId=entry.login?.ssoAccountId??null;
+ if(!['password','google','github','apple'].includes(signInMethod))throw Error('Invalid login sign-in metadata.');
  const field=async name=>(await read({action:'reveal',field:name})).value||null;
- const [username,email,password]=await Promise.all([field('username'),field('email'),entry.login?.hasPassword?field('password'):null]);
+ const [username,email,password]=await Promise.all([field('username'),field('email'),signInMethod==='password'&&entry.login?.hasPassword?field('password'):null]);
  const totp=entry.login?.hasTotp?await read({action:'totp:code'}):null;
- return {path,username,email,password,totp:totp?{code:totp.code,secondsRemaining:totp.secondsRemaining}:null};
+ return {path,signInMethod,ssoAccountId,username,email,password,totp:totp?{code:totp.code,secondsRemaining:totp.secondsRemaining}:null};
 }
 export function createAccountsRuntime({request,codesRequest=request,scope,identityId,browserAdapter,spawnChild,runConsumer,values=new PrivateValues()}){
  const call=(route,body={})=>request('/account-tools'+route,'POST',{...body,...scope});
- const inbox=args=>waitForInbox(args,request,values);
+ const inbox=args=>waitForInbox(args,args.codePattern?codesRequest:request,values);
  const flows=new Map();
  async function saveReport(report){
   const state=flows.get(report.flowId);if(!state||state.accountRef!==report.accountRef||state.uncertain)throw Error('Flow must be reconciled before reporting.');
@@ -92,6 +94,18 @@ export function createAccountsRuntime({request,codesRequest=request,scope,identi
     const result=await codesRequest('/emails/'+encodeURIComponent(args.inboxId)+'/code','POST',{sender:args.sender,subject:args.subject,after:args.after,codePattern:args.pattern??'\\d{6}',timeoutMs:args.timeoutMs??30000});
     return result.status==='matched'?{status:'matched',code:result.code,receivedAt:result.receivedAt}:{status:'pending'};
    }
+   case 'actas_messages_search':{const {inboxId,...query}=args;const params=new URLSearchParams();for(const[k,v]of Object.entries(query))if(v!==undefined)params.set(k,String(v));return request('/emails/'+encodeURIComponent(inboxId)+'/messages/search?'+params);}
+   case 'actas_message_labels_get':return request('/emails/'+encodeURIComponent(args.inboxId)+'/messages/'+encodeURIComponent(args.messageId)+'/labels');
+   case 'actas_message_labels_set':return request('/emails/'+encodeURIComponent(args.inboxId)+'/messages/'+encodeURIComponent(args.messageId)+'/labels','PUT',{userLabels:args.userLabels});
+   case 'actas_attachment_list':return request('/emails/'+encodeURIComponent(args.inboxId)+'/messages/'+encodeURIComponent(args.messageId)+'/attachments');
+   case 'actas_attachment_download':return request('/emails/'+encodeURIComponent(args.inboxId)+'/messages/'+encodeURIComponent(args.messageId)+'/attachments/'+encodeURIComponent(args.attachmentId)+'/download?encoding=base64&maxBytes=262144');
+   case 'actas_events_wait_for':return request('/resources/'+encodeURIComponent(args.resourceId)+'/events/wait','POST',{...(args.cursor===undefined?{}:{cursor:args.cursor}),timeoutMs:args.timeoutMs??30000});
+   case 'actas_webhook_create':return request('/resources/'+encodeURIComponent(args.resourceId)+'/webhooks','POST',{endpoint:args.endpoint});
+   case 'actas_webhook_list':return request('/resources/'+encodeURIComponent(args.resourceId)+'/webhooks','GET');
+   case 'actas_webhook_revoke':return request('/resources/'+encodeURIComponent(args.resourceId)+'/webhooks/'+encodeURIComponent(args.webhookId),'DELETE');
+   case 'actas_webhook_deliveries':return request('/resources/'+encodeURIComponent(args.resourceId)+'/webhooks/'+encodeURIComponent(args.webhookId)+'/deliveries','GET');
+   case 'actas_passkey_register':return request('/vault/passkeys/register','POST',{...args,...scope});
+   case 'actas_passkey_sign':return request('/vault/passkeys/sign','POST',{...args,...scope});
    case 'actas_vault_login':return vaultLogin(request,scope,args.path);
    case 'actas_totp_code':return request('/vault/read','POST',{...scope,path:args.path,action:'totp:code'});
    case 'actas_identity_accounts':{const id=args.identityId??identityId;if(!id)throw Error('Choose an identity for this registry.');return request('/identities/'+encodeURIComponent(id)+'/accounts','GET');}
